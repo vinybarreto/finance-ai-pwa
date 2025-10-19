@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   ArrowLeftRight,
+  Upload,
   Target,
   PiggyBank,
   Receipt,
@@ -53,6 +54,11 @@ const navigation = [
     name: 'Transações',
     href: '/dashboard/transactions',
     icon: ArrowLeftRight,
+  },
+  {
+    name: 'Importar',
+    href: '/dashboard/import',
+    icon: Upload,
   },
   {
     name: 'Orçamentos',
