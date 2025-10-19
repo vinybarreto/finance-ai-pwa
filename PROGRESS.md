@@ -339,6 +339,93 @@ app/dashboard/page.tsx (126 linhas)
 
 ---
 
+### ✅ Criar layout base (sidebar responsivo, temas claro/escuro)
+**Horário:** 04:00 - 04:15
+**Status:** Completo ✅
+
+**O que foi feito:**
+
+1. ✅ Criado `components/layout/Sidebar.tsx` (250+ linhas)
+   - Menu lateral responsivo completo
+   - Collapsible no desktop (botão chevron)
+   - Menu hamburguer no mobile com overlay
+   - Dark/light theme toggle funcional
+   - Active route highlighting com dot indicator
+   - User profile section com avatar
+   - Logout button integrado
+   - 8 itens de navegação com ícones lucide-react
+
+2. ✅ Criado `components/layout/DashboardLayout.tsx`
+   - Container que envolve todas as páginas do dashboard
+   - Integração automática com Sidebar
+   - Proteção de rota (redirect se não autenticado)
+   - Padding responsivo
+
+3. ✅ Dashboard principal melhorado (`app/dashboard/page.tsx`)
+   - Card de saldo total (EUR + BRL convertidos)
+   - Grid de contas com design melhorado
+   - Seção de ações rápidas (4 cards)
+   - Gradientes e visual moderno
+   - Hover states e transitions
+
+4. ✅ Criadas 7 páginas placeholder:
+   - `/dashboard/transactions` - Transações
+   - `/dashboard/budgets` - Orçamentos
+   - `/dashboard/bills` - Contas a Pagar
+   - `/dashboard/investments` - Investimentos
+   - `/dashboard/goals` - Caixinhas/Metas
+   - `/dashboard/chat` - Chat com IA
+   - `/dashboard/settings` - Configurações
+
+**Navegação implementada:**
+```typescript
+- Dashboard (LayoutDashboard icon)
+- Transações (ArrowLeftRight icon)
+- Orçamentos (Target icon)
+- Contas a Pagar (Receipt icon)
+- Investimentos (TrendingUp icon)
+- Caixinhas (PiggyBank icon)
+- Chat IA (MessageSquare icon)
+- Configurações (Settings icon)
+```
+
+**Features do Sidebar:**
+- ✅ Responsivo (mobile + desktop)
+- ✅ Collapsible sidebar no desktop (alterna entre 72px e 288px)
+- ✅ Menu hamburguer no mobile
+- ✅ Overlay escuro ao abrir menu mobile
+- ✅ Dark/light theme switcher (toggle Sun/Moon)
+- ✅ Active route highlighting (fundo azul + dot indicator)
+- ✅ User info com avatar circular e nome/email
+- ✅ Logout integrado no footer do sidebar
+- ✅ Smooth transitions (300ms ease-in-out)
+- ✅ Ícones consistentes (lucide-react)
+
+**Arquivos criados:**
+```
+components/layout/Sidebar.tsx (250 linhas)
+components/layout/DashboardLayout.tsx (40 linhas)
+app/dashboard/page.tsx (atualizado - 177 linhas)
+app/dashboard/transactions/page.tsx (29 linhas)
+app/dashboard/budgets/page.tsx (29 linhas)
+app/dashboard/bills/page.tsx (29 linhas)
+app/dashboard/investments/page.tsx (29 linhas)
+app/dashboard/goals/page.tsx (29 linhas)
+app/dashboard/chat/page.tsx (29 linhas)
+app/dashboard/settings/page.tsx (29 linhas)
+```
+
+**Commits:**
+- Commit `27d6a35`: feat: implementar layout base com sidebar responsivo
+- Push para GitHub: ✅
+
+**Próximo passo:**
+- Implementar CRUD de transações
+- Criar formulário de nova transação
+- Listar transações com filtros
+
+---
+
 _Este espaço será preenchido conforme o desenvolvimento avança..._
 
 ---
