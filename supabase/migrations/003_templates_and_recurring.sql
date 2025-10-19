@@ -159,4 +159,7 @@ $$;
 COMMENT ON TABLE public.transaction_templates IS 'Templates para criação rápida de transações recorrentes';
 COMMENT ON COLUMN public.transaction_templates.name IS 'Nome do template (ex: "Aluguel", "Netflix")';
 COMMENT ON COLUMN public.transaction_templates.times_used IS 'Contador de quantas vezes o template foi usado';
-COMMENT ON COLUMN public.transaction_templates.recurrence_rule IS 'Regra de recorrência no formato RRULE (RFC 5545)';
+
+-- Comentários para campos de recorrência (na tabela transactions, não templates)
+COMMENT ON COLUMN public.transactions.recurrence_rule IS 'Regra de recorrência no formato RRULE (RFC 5545)';
+COMMENT ON COLUMN public.transactions.is_recurring IS 'Indica se é uma transação recorrente';
