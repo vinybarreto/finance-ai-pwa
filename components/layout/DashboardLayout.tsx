@@ -24,14 +24,19 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login')
+  }
+
+  const userForSidebar = {
+    email: user.email,
+    user_metadata: user.user_metadata,
   }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
-      <Sidebar user={user} />
+      <Sidebar user={userForSidebar} />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto lg:ml-72">

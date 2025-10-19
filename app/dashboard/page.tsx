@@ -2,6 +2,7 @@
  * Dashboard Principal
  */
 
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 
