@@ -219,6 +219,126 @@ supabase/README.md
 
 ---
 
+### ⚠️ ERRO CORRIGIDO: Migration Foreign Key Dependency
+**Horário:** 03:45 - 03:50
+**Status:** Resolvido
+
+**Problema encontrado:**
+```
+ERROR: 42P01: relation "public.goals" does not exist
+```
+
+**Causa raiz:**
+- Na linha 304 do schema, tabela `investments` tinha FK inline:
+  ```sql
+  goal_id UUID REFERENCES public.goals(id)
+  ```
+- Mas tabela `investments` era criada na linha 288
+- Tabela `goals` só era criada na linha 352
+- Ordem de criação causava erro de dependência circular
+
+**Solução aplicada:**
+1. ✅ Removida FK inline de `investments.goal_id`
+2. ✅ Adicionado ALTER TABLE após criação de `goals`:
+   ```sql
+   ALTER TABLE public.investments
+     ADD CONSTRAINT fk_investments_goal
+     FOREIGN KEY (goal_id) REFERENCES public.goals(id) ON DELETE SET NULL;
+   ```
+3. ✅ Commit enviado ao GitHub
+4. ✅ Usuário re-executou migration com sucesso
+
+**Arquivos modificados:**
+- `supabase/migrations/001_initial_schema.sql`
+
+**Resultado:**
+- ✅ Todas 3 migrations executadas com sucesso
+- ✅ Schema completo criado no Supabase
+- ✅ RLS policies aplicadas
+- ✅ Seed data inserido (40+ categorias)
+
+**Próximo passo:**
+- Implementar autenticação
+
+---
+
+### ✅ Implementar sistema de autenticação (email/senha)
+**Horário:** 03:50 - 04:00
+**Status:** Completo ✅
+
+**O que foi feito:**
+
+1. ✅ Criado `lib/auth/actions.ts` - Server Actions
+   - `login()` - Autenticação com email/senha
+   - `signup()` - Criar conta + 5 contas bancárias
+   - `logout()` - Logout e limpeza de sessão
+   - `createUserInitialAccounts()` - Criar as 5 contas
+
+2. ✅ Criado `app/(auth)/login/page.tsx`
+   - Form limpo e responsivo
+   - Validação client-side (required, email type)
+   - Link para signup
+   - Dark mode support
+
+3. ✅ Criado `app/(auth)/signup/page.tsx`
+   - Form com nome + email + senha
+   - Info sobre 5 contas criadas automaticamente
+   - Validação mínimo 6 caracteres senha
+   - Link para login
+
+4. ✅ Criado `middleware.ts` - Proteção de rotas
+   - Bloqueia `/dashboard/*` se não autenticado
+   - Redireciona para `/login`
+   - Refresh de sessão em cada request
+   - Redireciona autenticados para `/dashboard` se estiverem em `/login` ou `/signup`
+
+5. ✅ Criado `app/dashboard/page.tsx` - Dashboard básico
+   - Mostra nome do usuário
+   - Lista as 5 contas bancárias
+   - Exibe saldo e moeda (EUR/BRL)
+   - Ícone e cor de cada conta
+   - Botão de logout temporário
+   - Status de desenvolvimento
+
+**5 Contas criadas automaticamente no signup:**
+```typescript
+1. ACTIVO BANK (EUR) 🏦 - #3b82f6
+2. REVOLUT (EUR) 💳 - #8b5cf6
+3. WISE (EUR) 🌍 - #10b981
+4. NOVO BANCO (EUR) 🏛️ - #f59e0b
+5. NUBANK (BRL) 💜 - #8b5cf6
+```
+
+**Arquivos criados:**
+```
+lib/auth/actions.ts (145 linhas)
+app/(auth)/login/page.tsx (99 linhas)
+app/(auth)/signup/page.tsx (130 linhas)
+middleware.ts (69 linhas)
+app/dashboard/page.tsx (126 linhas)
+```
+
+**Features implementadas:**
+- ✅ Autenticação email/senha
+- ✅ Criação automática de 5 contas
+- ✅ Proteção de rotas com middleware
+- ✅ Refresh de sessão automático
+- ✅ Dashboard mostrando contas
+- ✅ Dark/light mode
+- ✅ Formatação moeda EUR/BRL
+- ✅ Logout funcional
+
+**Commits:**
+- Commit `6b37ea1`: feat: implementar sistema completo de autenticação
+- Push para GitHub: ✅
+
+**Próximo passo:**
+- Criar layout base com sidebar responsivo
+- Adicionar theme switcher (dark/light)
+- Implementar navegação entre seções
+
+---
+
 _Este espaço será preenchido conforme o desenvolvimento avança..._
 
 ---
