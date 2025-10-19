@@ -301,7 +301,7 @@ CREATE TABLE public.investments (
 
   -- Categoria (longo prazo, emergência, meta)
   category investment_category DEFAULT 'long_term',
-  goal_id UUID REFERENCES public.goals(id) ON DELETE SET NULL,
+  goal_id UUID, -- FK adicionada depois que goals for criada
 
   -- Atualização automática de preço
   auto_update_price BOOLEAN DEFAULT true,
@@ -618,6 +618,15 @@ CREATE TRIGGER trigger_update_account_balance
   FOR EACH ROW
   WHEN (pg_trigger_depth() = 0) -- Evitar loops infinitos
   EXECUTE FUNCTION update_account_balance();
+
+-- =====================================================
+-- FOREIGN KEYS ADICIONADAS DEPOIS
+-- =====================================================
+
+-- Adicionar FK de investments -> goals (agora que goals existe)
+ALTER TABLE public.investments
+  ADD CONSTRAINT fk_investments_goal
+  FOREIGN KEY (goal_id) REFERENCES public.goals(id) ON DELETE SET NULL;
 
 -- Comentários (para documentação)
 COMMENT ON TABLE public.accounts IS 'Contas bancárias do usuário (corrente, poupança, cartão, etc)';
