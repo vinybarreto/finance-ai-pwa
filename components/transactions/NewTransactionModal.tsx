@@ -13,8 +13,9 @@
  */
 
 import { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Sparkles } from 'lucide-react'
 import { createTransaction } from '@/lib/transactions/actions'
+import { categorizeTransaction, suggestTags } from '@/lib/ai/categorization'
 
 interface Account {
   id: string
@@ -44,6 +45,7 @@ export default function NewTransactionModal({
   categories,
 }: NewTransactionModalProps) {
   const [loading, setLoading] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
   const [transactionType, setTransactionType] = useState<
     'income' | 'expense' | 'transfer'
   >('expense')
@@ -57,6 +59,7 @@ export default function NewTransactionModal({
   const [notes, setNotes] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [aiSuggestion, setAiSuggestion] = useState<string>('')
 
   // Filtrar categorias por tipo
   const filteredCategories =
@@ -67,6 +70,51 @@ export default function NewTransactionModal({
   // Moeda da conta selecionada
   const selectedAccount = accounts.find((acc) => acc.id === accountId)
   const currency = selectedAccount?.currency || 'EUR'
+
+  // Categorização automática com IA
+  const handleAiCategorization = async () => {
+    if (!description.trim()) {
+      alert('Digite uma descrição primeiro')
+      return
+    }
+
+    setAiLoading(true)
+    setAiSuggestion('')
+
+    try {
+      const result = await categorizeTransaction({
+        description,
+        merchant: merchant || undefined,
+        amount: amount ? parseFloat(amount) : undefined,
+        categories: categories.map((cat) => ({
+          id: cat.id,
+          name: cat.name,
+          type: cat.type,
+        })),
+      })
+
+      // Aplicar sugestão
+      setCategoryId(result.category_id)
+      setTransactionType(result.transaction_type)
+      setAiSuggestion(
+        `IA sugeriu: ${result.category_name} (${result.confidence}% confiança) - ${result.reasoning}`
+      )
+
+      // Sugerir tags também
+      const suggestedTags = await suggestTags(description, merchant || undefined)
+      if (suggestedTags.length > 0) {
+        setTags((prev) => {
+          const newTags = suggestedTags.filter((tag) => !prev.includes(tag))
+          return [...prev, ...newTags]
+        })
+      }
+    } catch (error) {
+      console.error('Erro na categorização:', error)
+      alert('Erro ao categorizar com IA')
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -229,9 +277,20 @@ export default function NewTransactionModal({
 
           {/* Categoria */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Categoria
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Categoria
+              </label>
+              <button
+                type="button"
+                onClick={handleAiCategorization}
+                disabled={aiLoading || !description.trim()}
+                className="flex items-center gap-1 rounded-lg bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 transition hover:bg-purple-200 disabled:opacity-50 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+              >
+                <Sparkles className="h-3 w-3" />
+                {aiLoading ? 'Analisando...' : 'Sugerir com IA'}
+              </button>
+            </div>
             <select
               required
               value={categoryId}
@@ -245,6 +304,11 @@ export default function NewTransactionModal({
                 </option>
               ))}
             </select>
+            {aiSuggestion && (
+              <p className="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                ✨ {aiSuggestion}
+              </p>
+            )}
           </div>
 
           {/* Valor */}
