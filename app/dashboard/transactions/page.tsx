@@ -3,30 +3,42 @@
  */
 
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import TransactionsClient from '@/components/transactions/TransactionsClient'
+import { createClient } from '@/lib/supabase/server'
+import { getTransactions } from '@/lib/transactions/actions'
 
-export default function TransactionsPage() {
+export default async function TransactionsPage() {
+  const supabase = createClient()
+
+  // Buscar contas do usuário
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return null
+
+  const { data: accounts } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('display_order')
+
+  // Buscar categorias
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name')
+
+  // Buscar transações
+  const { transactions } = await getTransactions()
+
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Transações
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Gerencie todas as suas receitas e despesas
-        </p>
-      </div>
-
-      <div className="flex min-h-[400px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-        <div className="text-center">
-          <div className="text-6xl">💰</div>
-          <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Em breve
-          </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sistema de transações em desenvolvimento
-          </p>
-        </div>
-      </div>
+      <TransactionsClient
+        accounts={accounts || []}
+        categories={categories || []}
+        initialTransactions={transactions || []}
+      />
     </DashboardLayout>
   )
 }
