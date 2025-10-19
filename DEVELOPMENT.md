@@ -561,6 +561,255 @@ export function ComponentName({ props }: Props) {
 
 ---
 
+## 🎯 Features Avançadas
+
+### 📊 Categorias Hierárquicas (Migration 005)
+
+**Estrutura:** Categorias Pai → Subcategorias
+
+**Exemplo de hierarquia:**
+```
+🚗 Transporte (pai)
+  ├── ⛽ Combustível
+  ├── 🛣️ Pedágio
+  ├── 🅿️ Estacionamento
+  ├── 🔧 Manutenção Veículo
+  ├── 🚇 Transporte Público
+  └── 🚕 Uber/Bolt
+
+🛒 Alimentação (pai)
+  ├── 🛍️ Supermercado
+  ├── 🍕 Restaurantes
+  ├── ☕ Cafés e Padarias
+  ├── 🥡 Delivery
+  └── 🍺 Bar/Bebidas
+```
+
+**Total disponível:** 11 categorias pai + 60 subcategorias = **71 categorias**!
+
+**Categorias pai implementadas:**
+- **Despesas:** Transporte, Alimentação, Habitação, Saúde, Educação, Lazer, Compras, Serviços
+- **Receitas:** Trabalho, Investimentos, Outras Receitas
+
+**Como funciona:**
+1. Campo `parent_category_id` na tabela `categories`
+2. Se NULL = categoria pai
+3. Se preenchido = subcategoria
+4. Consultas podem agregar por pai ou detalhar por subcategoria
+
+**Arquivos:**
+- `supabase/migrations/005_hierarchical_categories_seed.sql` - Seed completo
+- `supabase/EXECUTAR_MIGRATION_005.md` - Guia de execução
+
+---
+
+### 🔄 Sistema de Recategorização Automática
+
+**Problema resolvido:** Quando você corrige uma categorização da IA, as transações antigas ficavam com a categoria errada.
+
+**Solução:** Sistema inteligente que:
+1. Detecta transações similares (mesmo merchant ou descrição)
+2. Pergunta se quer recategorizar todas
+3. Aplica em lote com confirmação
+
+**Componentes principais:**
+
+#### 1. Server Actions (`lib/transactions/recategorize.ts`)
+```typescript
+// Buscar similares
+findSimilarTransactionsByMerchant(merchant: string)
+findSimilarTransactionsByDescription(description: string)
+findAllSimilarTransactions(merchant, description)
+
+// Recategorizar
+recategorizeTransactions(transactionIds[], newCategoryId)
+recategorizeByMerchant(merchant, newCategoryId)
+
+// Aplicar padrões aprendidos
+applyLearnedPatterns() // Aplica TODOS os padrões com confiança >=70%
+getLearnedPatternsStats() // Estatísticas de padrões
+```
+
+#### 2. Modal de Confirmação (`components/transactions/RecategorizeModal.tsx`)
+- Lista todas as transações similares encontradas
+- Checkbox para selecionar quais recategorizar
+- Preview: `Categoria Atual → Nova Categoria`
+- Confirmação antes de aplicar
+
+#### 3. Integração no Import
+Quando você corrige uma categoria durante o import:
+```typescript
+const result = await learnCategoryCorrection(merchant, description, categoryId)
+// Returns: { learned: true, similarCount: 15, similarTransactionIds: [...] }
+
+if (result.similarCount > 0) {
+  // Mostrar modal perguntando se quer recategorizar
+}
+```
+
+#### 4. Botão "Aplicar Padrões"
+Localização: `/dashboard/transactions` (header)
+
+**Quando aparece:**
+- Só aparece se houver padrões aprendidos com confiança >=70%
+- Mostra contador: "Aplicar Padrões (5)"
+
+**O que faz:**
+1. Busca todos os `learned_patterns` com `confidence_score >= 0.7`
+2. Para cada padrão:
+   - Busca transações com mesmo merchant/descrição
+   - Atualiza categoria em lote
+   - Incrementa `times_applied` no padrão
+3. Mostra resultado: "X transações recategorizadas usando Y padrões!"
+
+**Como usar:**
+```bash
+# Usuário clica no botão
+→ Confirma: "Aplicar 5 padrões aprendidos às transações existentes?"
+→ Sistema processa em lote
+→ Página recarrega com transações atualizadas
+```
+
+---
+
+### 🧠 Sistema de Aprendizado de Padrões
+
+**Tabelas envolvidas:**
+- `learned_patterns` - Merchant/Descrição → Categoria
+- `learned_transfers` - Padrões de transferências internas
+
+**Confidence Score:**
+- Inicia em **1.0** (100% confiança)
+- Diminui **0.1** cada vez que usuário corrige
+- Mínimo **0.1** (10% confiança)
+- Auto-apply se `>= 0.7` (70%+)
+
+**Exemplo de aprendizado:**
+```
+1ª vez: "Continente" → IA sugere "Compras"
+Você corrige → "Continente" = "Alimentação > Supermercado"
+Sistema salva com confidence 1.0
+
+2ª vez: "Continente" → Aplica automaticamente "Supermercado"
+
+Se você corrigir novamente:
+- Confidence cai para 0.9
+- Sistema continua aplicando (ainda >= 0.7)
+
+Após 4 correções:
+- Confidence = 0.6
+- Sistema para de auto-aplicar
+- Passa a apenas sugerir
+```
+
+**Campos em `learned_patterns`:**
+```sql
+- merchant TEXT
+- description_pattern TEXT
+- category_id UUID
+- times_applied INTEGER -- Quantas vezes foi aplicado
+- times_corrected INTEGER -- Quantas vezes foi corrigido
+- confidence_score DECIMAL(3,2) -- 0.00 a 1.00
+- last_applied_at TIMESTAMP
+```
+
+**Funções helper no Supabase:**
+```sql
+-- Incrementar uso
+SELECT increment_pattern_usage(pattern_id, 'category');
+
+-- Registrar correção (diminui confidence)
+SELECT record_pattern_correction(pattern_id, 'category');
+```
+
+---
+
+### 📥 Sistema de Import de Extratos
+
+**Bancos suportados:**
+- ✅ Revolut (CSV) - 100% funcional
+- ✅ Wise (CSV) - 100% funcional
+- ✅ Nubank (OFX) - 100% funcional
+- ⏳ ActivoBank (PDF) - A implementar
+- ⏳ NovoBanco (PDF) - A implementar
+
+**Fluxo completo:**
+```
+1. Upload arquivo (drag & drop)
+2. Auto-detect banco pelo formato
+3. Parse transações
+4. Check duplicatas (Data + Valor + Descrição)
+5. Categorização:
+   a. Tenta padrões aprendidos primeiro
+   b. Se não tiver, usa Claude AI (batch até 50)
+6. Preview editável com stats
+7. Usuário pode:
+   - Editar categorias
+   - Forçar import de duplicatas
+   - Confirmar ou cancelar
+8. Import em lote
+9. Summary com estatísticas
+```
+
+**Detecção de duplicatas:**
+- Data exata
+- Valor exato (absoluto)
+- Descrição exata (após normalização)
+- Score >= 95% = duplicata
+
+**Integração com aprendizado:**
+Durante o import, quando você edita uma categoria:
+```typescript
+1. Sistema salva padrão em learned_patterns
+2. Busca transações similares já importadas
+3. Se encontrar >= 1, mostra modal:
+   "Encontramos 15 transações de 'Continente'. Recategorizar todas?"
+4. Usuário escolhe quais recategorizar
+5. Aplica em lote
+```
+
+**Arquivos principais:**
+```
+lib/import/
+├── parsers/
+│   ├── revolut.ts
+│   ├── wise.ts
+│   ├── nubank.ts
+│   └── index.ts (auto-detect)
+├── actions.ts (server actions)
+└── duplicate-detection.ts
+
+components/import/
+├── FileUpload.tsx
+├── TransactionPreview.tsx
+└── ...
+
+app/dashboard/import/
+├── page.tsx
+└── ImportClient.tsx
+```
+
+---
+
+### 🗃️ Migrations Executadas
+
+```
+001_initial_schema.sql       - Schema completo (20+ tabelas)
+002_rls_policies.sql         - RLS policies (segurança)
+003_templates_and_recurring.sql - Templates de transações
+004_import_and_learning.sql  - Import + Sistema de aprendizado
+005_hierarchical_categories_seed.sql - Categorias hierárquicas (71 categorias)
+```
+
+**Como executar nova migration:**
+1. Criar arquivo SQL em `supabase/migrations/`
+2. Acessar Supabase Dashboard → SQL Editor
+3. Copiar e colar SQL
+4. Run
+5. Verificar sucesso
+
+---
+
 ## 🔗 Links Importantes
 
 - **Supabase Dashboard:** https://supabase.com/dashboard/project/hhsxppzpcbwxhpwszwqa
@@ -581,4 +830,4 @@ Se algo não estiver funcionando:
 
 ---
 
-**Última atualização:** 2025-10-19 - Documentação inicial criada
+**Última atualização:** 2025-10-19 - Adicionadas categorias hierárquicas + recategorização automática

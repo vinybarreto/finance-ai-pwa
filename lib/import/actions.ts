@@ -299,22 +299,27 @@ export async function confirmImport(
 
 /**
  * Salvar correção de categoria feita pelo usuário
+ * E retornar transações similares para recategorização
  */
 export async function learnCategoryCorrection(
   merchant: string | undefined,
   description: string,
   correctedCategoryId: string
-): Promise<void> {
+): Promise<{
+  learned: boolean
+  similarCount: number
+  similarTransactionIds?: string[]
+}> {
   const supabase = await createClient()
 
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return { learned: false, similarCount: 0 }
 
     // Upsert learned pattern
-    await supabase.from('learned_patterns').upsert({
+    const { error: learnError } = await supabase.from('learned_patterns').upsert({
       user_id: user.id,
       merchant: merchant || null,
       description_pattern: extractPattern(description),
@@ -322,8 +327,44 @@ export async function learnCategoryCorrection(
       times_applied: 1,
       confidence_score: 1.0,
     })
+
+    if (learnError) {
+      console.error('Error upserting learned pattern:', learnError)
+      return { learned: false, similarCount: 0 }
+    }
+
+    // Buscar transações similares já importadas
+    let query = supabase
+      .from('transactions')
+      .select('id')
+      .eq('user_id', user.id)
+      .neq('category_id', correctedCategoryId) // Só as que ainda não têm a categoria correta
+
+    if (merchant) {
+      query = query.eq('merchant', merchant)
+    } else {
+      // Buscar por descrição similar
+      const pattern = extractPattern(description)
+      if (pattern) {
+        query = query.ilike('description', `%${pattern}%`)
+      }
+    }
+
+    const { data: similar, error: similarError } = await query.limit(100)
+
+    if (similarError) {
+      console.error('Error finding similar transactions:', similarError)
+      return { learned: true, similarCount: 0 }
+    }
+
+    return {
+      learned: true,
+      similarCount: similar?.length || 0,
+      similarTransactionIds: similar?.map((t) => t.id) || [],
+    }
   } catch (error) {
     console.error('Error learning category correction:', error)
+    return { learned: false, similarCount: 0 }
   }
 }
 

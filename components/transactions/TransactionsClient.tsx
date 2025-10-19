@@ -12,12 +12,13 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Trash2, TrendingUp, TrendingDown, ArrowRightLeft, Sparkles } from 'lucide-react'
+import { Plus, Search, Filter, Trash2, TrendingUp, TrendingDown, ArrowRightLeft, Sparkles, RefreshCw } from 'lucide-react'
 import NewTransactionModal from './NewTransactionModal'
 import NewTemplateModal from '../templates/NewTemplateModal'
 import TemplateCard from '../templates/TemplateCard'
 import { deleteTransaction } from '@/lib/transactions/actions'
 import { getTemplates } from '@/lib/templates/actions'
+import { applyLearnedPatterns, getLearnedPatternsStats } from '@/lib/transactions/recategorize'
 import type { Template } from '@/lib/templates/actions'
 
 interface Account {
@@ -70,16 +71,42 @@ export default function TransactionsClient({
   const [filterAccount, setFilterAccount] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [applyingPatterns, setApplyingPatterns] = useState(false)
+  const [patternsCount, setPatternsCount] = useState(0)
 
-  // Carregar templates
+  // Carregar templates e padrões
   useEffect(() => {
     loadTemplates()
+    loadPatternsStats()
   }, [])
 
   const loadTemplates = async () => {
     const result = await getTemplates()
     if (result.templates) {
       setTemplates(result.templates)
+    }
+  }
+
+  const loadPatternsStats = async () => {
+    const stats = await getLearnedPatternsStats()
+    setPatternsCount(stats.highConfidence)
+  }
+
+  const handleApplyPatterns = async () => {
+    if (!confirm(`Aplicar ${patternsCount} padrões aprendidos às transações existentes?`)) {
+      return
+    }
+
+    setApplyingPatterns(true)
+    const result = await applyLearnedPatterns()
+    setApplyingPatterns(false)
+
+    if (result.success) {
+      alert(result.message)
+      // Reload page to show updated transactions
+      window.location.reload()
+    } else {
+      alert('Erro: ' + result.message)
     }
   }
 
@@ -153,13 +180,32 @@ export default function TransactionsClient({
             Gerencie todas as suas receitas e despesas
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
-        >
-          <Plus className="h-5 w-5" />
-          Nova Transação
-        </button>
+        <div className="flex gap-2">
+          {patternsCount > 0 && (
+            <button
+              onClick={handleApplyPatterns}
+              disabled={applyingPatterns}
+              className="flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-50 px-4 py-2 font-medium text-purple-600 transition hover:bg-purple-100 disabled:opacity-50 dark:bg-purple-900/20 dark:hover:bg-purple-900/40"
+              title={`Aplicar ${patternsCount} padrões aprendidos`}
+            >
+              {applyingPatterns ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-600 border-t-transparent"></div>
+              ) : (
+                <RefreshCw className="h-5 w-5" />
+              )}
+              <span className="hidden sm:inline">
+                Aplicar Padrões ({patternsCount})
+              </span>
+            </button>
+          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            <Plus className="h-5 w-5" />
+            Nova Transação
+          </button>
+        </div>
       </div>
 
       {/* Estatísticas */}
