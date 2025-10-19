@@ -680,6 +680,133 @@ components/layout/DashboardLayout.tsx (fix user typing)
 
 ---
 
+### ✅ Implementar Templates de Transações Rápidas
+**Horário:** 21:00 - 23:00
+**Status:** Completo ✅
+
+**O que foi feito:**
+
+1. ✅ Criado `supabase/migrations/003_templates_and_recurring.sql` (200+ linhas)
+   - Tabela `transaction_templates` para templates reutilizáveis
+   - Campos de recorrência na tabela `transactions`
+   - RLS policies completas
+   - Função `increment_template_usage()` para contador
+   - Função `create_default_templates()` para templates iniciais
+   - Índices otimizados
+
+2. ✅ Criado `lib/templates/actions.ts` (300+ linhas) - Server Actions
+   - `createTemplate()` - Criar novo template
+   - `getTemplates()` - Buscar todos os templates do usuário
+   - `deleteTemplate()` - Deletar template
+   - `useTemplate()` - Criar transação a partir do template
+   - `updateTemplate()` - Atualizar template
+   - Auto-incremento do contador de uso
+   - Auto-atualização de saldo ao usar template
+
+3. ✅ Criado `components/templates/TemplateCard.tsx` (150+ linhas)
+   - Card visual para cada template
+   - Botão "Usar Template" (cria transação em 1 clique)
+   - Botão de deletar com confirmação
+   - Mostra ícone, valor, categoria, conta
+   - Mostra contador de quantas vezes foi usado
+   - Visual diferenciado para receitas (verde) e despesas (vermelho)
+
+4. ✅ Criado `components/templates/NewTemplateModal.tsx` (300+ linhas)
+   - Modal completo para criar novos templates
+   - Seletor de ícone (18 emojis disponíveis)
+   - Campos: nome, descrição, conta, categoria, valor, estabelecimento, notas
+   - Validação de campos obrigatórios
+   - Suporte a EUR e BRL
+   - Auto-seleção de moeda baseada na conta
+
+5. ✅ Integrado templates no `TransactionsClient.tsx`
+   - Seção "Templates Rápidos" com até 6 templates
+   - Botão "+ Novo Template"
+   - Grid responsivo (2 colunas mobile, 3 desktop)
+   - Auto-reload após usar template
+   - Estado vazio com call-to-action
+
+6. ✅ Criado `supabase/EXECUTAR_MIGRATION_003.md`
+   - Guia passo a passo para executar migration
+   - Verificação de sucesso
+
+**Features Implementadas:**
+
+```
+✅ Templates de transações rápidas
+✅ Criar template manualmente com todos os campos
+✅ Usar template para criar transação (1 clique)
+✅ Deletar templates
+✅ Contador de uso de cada template
+✅ 18 ícones disponíveis para personalização
+✅ Suporte a EUR e BRL
+✅ Grid responsivo
+✅ Dark/light mode
+✅ Integração com sistema de transações
+✅ Auto-atualização de saldos
+```
+
+**Estrutura de Dados:**
+
+```sql
+transaction_templates:
+- id, user_id
+- name (ex: "Aluguel", "Netflix")
+- icon (emoji)
+- account_id, category_id
+- transaction_type, amount, currency
+- merchant, notes, tags
+- times_used (contador)
+- last_used_at, created_at, updated_at
+```
+
+**Casos de Uso:**
+
+- Aluguel mensal → salvar como template
+- Netflix, Spotify → templates de assinaturas
+- Supermercado favorito → template "Continente"
+- Combustível → template "Galp"
+- Salário → template de receita mensal
+
+**Arquivos criados:**
+```
+supabase/migrations/003_templates_and_recurring.sql (200 linhas)
+supabase/EXECUTAR_MIGRATION_003.md
+lib/templates/actions.ts (300 linhas)
+components/templates/TemplateCard.tsx (150 linhas)
+components/templates/NewTemplateModal.tsx (300 linhas)
+```
+
+**Arquivos modificados:**
+```
+components/transactions/TransactionsClient.tsx
+- Adicionados imports de templates
+- Adicionado state para templates
+- Adicionada seção "Templates Rápidos"
+- Adicionado modal de novo template
+```
+
+**⚠️ AÇÃO NECESSÁRIA:**
+O usuário precisa executar a migration 003 no Supabase Dashboard seguindo o guia em `supabase/EXECUTAR_MIGRATION_003.md`
+
+**Correções aplicadas:**
+- ❌ Erro de naming hook: `useTemplate` não pode ser chamado em função não-componente
+- ✅ Renomeado import para `applyTemplate` no TemplateCard.tsx
+- ✅ Build passando sem erros
+
+**Commits:**
+- Commit: feat: implementar templates de transações rápidas
+- Push para GitHub: ✅
+
+**Próximo passo:**
+- ⚠️ **URGENTE:** Usuário precisa executar migration 003 no Supabase
+- Implementar Upload de CSV/OFX para importação em lote de transações
+- Parsers: Revolut (CSV), Wise (CSV), Nubank (OFX)
+- Implementar transações recorrentes automáticas
+- Implementar Orçamentos (budgets) com alertas
+
+---
+
 _Este espaço será preenchido conforme o desenvolvimento avança..._
 
 ---

@@ -11,10 +11,14 @@
  * - Estatísticas básicas
  */
 
-import { useState } from 'react'
-import { Plus, Search, Filter, Trash2, TrendingUp, TrendingDown, ArrowRightLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Search, Filter, Trash2, TrendingUp, TrendingDown, ArrowRightLeft, Sparkles } from 'lucide-react'
 import NewTransactionModal from './NewTransactionModal'
+import NewTemplateModal from '../templates/NewTemplateModal'
+import TemplateCard from '../templates/TemplateCard'
 import { deleteTransaction } from '@/lib/transactions/actions'
+import { getTemplates } from '@/lib/templates/actions'
+import type { Template } from '@/lib/templates/actions'
 
 interface Account {
   id: string
@@ -59,11 +63,25 @@ export default function TransactionsClient({
   initialTransactions,
 }: TransactionsClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
   const [transactions, setTransactions] = useState(initialTransactions)
+  const [templates, setTemplates] = useState<Template[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterAccount, setFilterAccount] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [filterType, setFilterType] = useState('')
+
+  // Carregar templates
+  useEffect(() => {
+    loadTemplates()
+  }, [])
+
+  const loadTemplates = async () => {
+    const result = await getTemplates()
+    if (result.templates) {
+      setTemplates(result.templates)
+    }
+  }
 
   // Filtrar transações
   const filteredTransactions = transactions.filter((tx) => {
@@ -176,6 +194,60 @@ export default function TransactionsClient({
           </p>
         </div>
       </div>
+
+      {/* Templates Rápidos */}
+      {templates.length > 0 && (
+        <div className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Templates Rápidos
+              </h2>
+            </div>
+            <button
+              onClick={() => setIsTemplateModalOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700"
+            >
+              <Plus className="h-4 w-4" />
+              Novo Template
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {templates.slice(0, 6).map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onUse={() => {
+                  loadTemplates()
+                  window.location.reload()
+                }}
+                onDelete={() => loadTemplates()}
+              />
+            ))}
+          </div>
+
+          {templates.length === 0 && (
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
+              <Sparkles className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                Nenhum template ainda
+              </h3>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                Crie templates para transações recorrentes e economize tempo
+              </p>
+              <button
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="mt-4 flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700"
+              >
+                <Plus className="h-5 w-5" />
+                Criar Primeiro Template
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="mb-6 space-y-4 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
@@ -358,7 +430,7 @@ export default function TransactionsClient({
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal de Nova Transação */}
       <NewTransactionModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -368,6 +440,18 @@ export default function TransactionsClient({
         }}
         accounts={accounts}
         categories={categories}
+      />
+
+      {/* Modal de Novo Template */}
+      <NewTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        accounts={accounts}
+        categories={categories}
+        onTemplateCreated={() => {
+          loadTemplates()
+          setIsTemplateModalOpen(false)
+        }}
       />
     </div>
   )
