@@ -129,6 +129,96 @@ public/icons/
 
 ---
 
+### ✅ Configurar Supabase (database schema, migrations, auth)
+**Horário:** 03:40 - 03:45
+**Status:** Completo
+
+**O que foi feito:**
+1. ✅ Criado `001_initial_schema.sql` (800+ linhas)
+   - 20+ tabelas criadas
+   - Types/Enums (account_type, transaction_type, etc)
+   - Índices otimizados
+   - Triggers automáticos (updated_at, saldo de contas)
+   - Funções de negócio
+
+2. ✅ Criado `002_rls_policies.sql` (300+ linhas)
+   - RLS habilitado em TODAS as tabelas
+   - Policies de SELECT, INSERT, UPDATE, DELETE
+   - Isolamento total entre usuários
+   - Grants para authenticated users
+
+3. ✅ Criado `seed.sql`
+   - 40+ categorias pré-definidas do sistema
+   - Categorias dedutíveis IRS Portugal (Saúde, Educação, Habitação)
+   - Trigger para criar dados iniciais do usuário no signup
+   - Função create_user_initial_data()
+
+4. ✅ Criado `supabase/README.md`
+   - Guia completo de execução das migrations
+   - Opção 1: Via Dashboard
+   - Opção 2: Via CLI
+   - Troubleshooting
+
+**Tabelas criadas:**
+```
+Core:
+- users (estende auth.users)
+- accounts (contas bancárias)
+- categories (categorias + subcategorias)
+- transactions (lançamentos)
+- budgets (orçamentos)
+- bills (contas a pagar/receber)
+
+Investimentos:
+- investments (ativos)
+- investment_transactions (histórico)
+- goals (metas/caixinhas)
+- milestones (marcos)
+- debts (dívidas)
+
+IA:
+- ai_conversations (chat histórico)
+- ai_insights (insights gerados)
+- ai_categorization_rules (regras aprendidas)
+
+Outros:
+- gamification (XP, badges, streaks)
+```
+
+**Features do Schema:**
+- ✅ Multi-moeda (EUR + BRL)
+- ✅ Transferências internas (sem impacto receita/despesa)
+- ✅ Parcelamentos detalhados
+- ✅ Recorrências (RRULE format)
+- ✅ Tags livres em transações
+- ✅ Anexos (Supabase Storage)
+- ✅ IA categorização com confiança
+- ✅ Merchant tracking (estabelecimentos)
+- ✅ Conversão cambial automática
+- ✅ Hierarquia de categorias (subcategorias)
+- ✅ Portugal IRS (categorias dedutíveis)
+- ✅ Atualização automática de saldos (triggers)
+
+**Arquivos criados:**
+```
+supabase/migrations/001_initial_schema.sql (800+ linhas)
+supabase/migrations/002_rls_policies.sql (300+ linhas)
+supabase/seed.sql (200+ linhas)
+supabase/README.md
+```
+
+**Categorias Pré-definidas (40+):**
+- Despesas: Alimentação, Transporte, Habitação, Saúde*, Educação*, Lazer, Compras, Pets, etc
+- Receitas: Salário, Freelance, Investimentos, Dividendos, etc
+- (*dedutível IRS Portugal)
+
+**Próximo passo:**
+- EXECUTAR migrations no Supabase Dashboard
+- Testar criação de usuário
+- Implementar autenticação no app
+
+---
+
 _Este espaço será preenchido conforme o desenvolvimento avança..._
 
 ---
