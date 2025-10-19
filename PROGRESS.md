@@ -426,6 +426,123 @@ app/dashboard/settings/page.tsx (29 linhas)
 
 ---
 
+### ✅ Implementar CRUD de transações (lançamentos manuais)
+**Horário:** 04:15 - 04:35
+**Status:** Completo ✅
+
+**O que foi feito:**
+
+1. ✅ Criado `lib/transactions/actions.ts` (350+ linhas) - Server Actions
+   - `createTransaction()` - Criar transação simples ou transferência
+   - `createInternalTransfer()` - Criar 2 transações relacionadas
+   - `getTransactions()` - Buscar com filtros avançados
+   - `deleteTransaction()` - Deletar e reverter saldo
+   - `updateAccountBalance()` - Atualizar saldo automaticamente
+   - Suporte completo a transferências internas
+   - Multi-moeda (EUR + BRL)
+
+2. ✅ Criado `components/transactions/NewTransactionModal.tsx` (450+ linhas)
+   - Modal completo para nova transação
+   - 3 tipos: Receita (verde), Despesa (vermelho), Transferência (azul)
+   - Seleção de conta origem
+   - Seleção de conta destino (se transferência)
+   - Seleção de categoria (filtrada por tipo)
+   - Campo valor com moeda automática da conta
+   - Campos: descrição, data, estabelecimento, notas
+   - Sistema de tags customizáveis (adicionar/remover)
+   - Validação de campos obrigatórios
+   - Loading state durante criação
+   - UI responsiva e intuitiva
+
+3. ✅ Criado `components/transactions/TransactionsClient.tsx` (320+ linhas)
+   - Lista completa de transações ordenada por data
+   - 3 Cards de estatísticas:
+     * Total de receitas (verde)
+     * Total de despesas (vermelho)
+     * Saldo líquido (azul/amarelo)
+   - Filtros múltiplos:
+     * Busca por texto (descrição + estabelecimento + notas)
+     * Por conta
+     * Por categoria
+     * Por tipo (receita/despesa/transferência)
+   - Display detalhado de cada transação:
+     * Ícone da categoria com cor de fundo
+     * Nome da conta + categoria + data formatada
+     * Estabelecimento (se houver)
+     * Tags customizáveis
+     * Valor colorido e formatado
+     * Badge "Transferência" para transferências internas
+   - Botão deletar com confirmação
+   - Estado vazio com call-to-action
+   - Reload automático após criar transação
+
+4. ✅ Atualizado `app/dashboard/transactions/page.tsx`
+   - Server Component que busca:
+     * Contas do usuário
+     * Categorias do sistema
+     * Transações iniciais
+   - Passa dados para TransactionsClient
+   - Integrado com DashboardLayout
+
+**Features Implementadas:**
+```
+✅ Criar transações (receita/despesa)
+✅ Criar transferências internas (2 transações relacionadas)
+✅ Atualização automática de saldo das contas
+✅ Detecção de transferências internas (campo is_internal_transfer)
+✅ Multi-moeda (EUR + BRL)
+✅ Sistema de tags customizáveis
+✅ Filtros múltiplos (conta, categoria, tipo, busca)
+✅ Busca por texto em descrição/estabelecimento/notas
+✅ Deletar transação com reversão de saldo
+✅ Estatísticas em tempo real (receitas, despesas, saldo)
+✅ Interface responsiva
+✅ Dark/light mode support
+✅ Formatação de moeda (€ / R$)
+✅ Formatação de data (pt-PT)
+✅ Loading states
+✅ Validação de campos
+```
+
+**Integração com Database:**
+- Tabela `transactions` com todos os campos do schema
+- Relacionamento com `accounts` (via account_id)
+- Relacionamento com `categories` (via category_id)
+- Campo `is_internal_transfer` (boolean)
+- Campo `related_transaction_id` (UUID) para transferências
+- Campo `tags` (JSONB array)
+- Query com joins para trazer account + category
+
+**Lógica de Transferências Internas:**
+```typescript
+Quando tipo = 'transfer':
+1. Criar transação de SAÍDA (expense) na conta origem
+2. Criar transação de ENTRADA (income) na conta destino
+3. Relacionar as duas via related_transaction_id
+4. Marcar ambas com is_internal_transfer = true
+5. Ao deletar uma, deletar ambas
+6. Transferências NÃO contam para estatísticas de receita/despesa
+```
+
+**Arquivos criados/modificados:**
+```
+lib/transactions/actions.ts (350 linhas) - NOVO
+components/transactions/NewTransactionModal.tsx (450 linhas) - NOVO
+components/transactions/TransactionsClient.tsx (320 linhas) - NOVO
+app/dashboard/transactions/page.tsx (atualizado - 45 linhas)
+```
+
+**Commits:**
+- Commit `be5c5a9`: feat: implementar CRUD completo de transações
+- Push para GitHub: ✅
+
+**Próximo passo:**
+- Integrar Claude API para categorização automática
+- Criar função de análise de texto
+- Sugerir categoria baseada em descrição/estabelecimento
+
+---
+
 _Este espaço será preenchido conforme o desenvolvimento avança..._
 
 ---
