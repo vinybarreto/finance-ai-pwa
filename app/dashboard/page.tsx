@@ -113,7 +113,10 @@ export default async function DashboardPage() {
           Ações Rápidas
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <button className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <Link
+            href="/dashboard/transactions"
+            className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+          >
             <div className="text-2xl">💰</div>
             <h3 className="mt-2 font-semibold text-gray-900 dark:text-white">
               Nova Transação
@@ -121,9 +124,12 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Lançar receita ou despesa
             </p>
-          </button>
+          </Link>
 
-          <button className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <Link
+            href="/dashboard/chat"
+            className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+          >
             <div className="text-2xl">💬</div>
             <h3 className="mt-2 font-semibold text-gray-900 dark:text-white">
               Chat com IA
@@ -131,9 +137,12 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Pergunte sobre suas finanças
             </p>
-          </button>
+          </Link>
 
-          <button className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <Link
+            href="/dashboard/transactions"
+            className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+          >
             <div className="text-2xl">📊</div>
             <h3 className="mt-2 font-semibold text-gray-900 dark:text-white">
               Relatórios
@@ -141,9 +150,12 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Ver análises e gráficos
             </p>
-          </button>
+          </Link>
 
-          <button className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <Link
+            href="/dashboard/goals"
+            className="rounded-lg bg-white p-4 text-left shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+          >
             <div className="text-2xl">🎯</div>
             <h3 className="mt-2 font-semibold text-gray-900 dark:text-white">
               Metas
@@ -151,7 +163,7 @@ export default async function DashboardPage() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Acompanhar objetivos
             </p>
-          </button>
+          </Link>
         </div>
       </div>
 
