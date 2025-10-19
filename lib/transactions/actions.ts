@@ -214,7 +214,7 @@ export async function getTransactions(filters?: {
       `
       *,
       account:accounts(id, name, icon, color, currency),
-      category:categories(id, name, icon, color, type)
+      category:categories!transactions_category_id_fkey(id, name, icon, color, type)
     `
     )
     .eq('user_id', user.id)
